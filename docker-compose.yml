@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  thingsboard:
+    container_name: mytb2
+    image: thingsboard/tb-postgres
+    restart: always
+    ports:
+      - "9090:9090"         # HTTP UI
+      - "7070:7070"         # Edge RPC
+      - "1883:1883"         # MQTT
+      - "5683-5688:5683-5688/udp"  # CoAP/DTLS
+    volumes:
+      - ./.tb-data:/data
+      - ./.tb-logs:/var/log/thingsboard
+    environment:
+      - TB_QUEUE_TYPE=in-memory
+    networks:
+      - net
+  
+  node-red:
+    container_name: node-red
+    image: nodered/node-red:latest
+    restart: always
+    ports:
+      - "1881:1880"   # UI Node-RED
+    volumes:
+      - ./nodered-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - thingsboard
+    networks:
+      - net
+
+networks:
+    net:
+        driver: bridge
+  
